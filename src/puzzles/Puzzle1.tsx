@@ -1,33 +1,37 @@
-import React, { useState } from "react";
-import { DndContext, DragOverlay, useDraggable, useDroppable, DragEndEvent } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
+import React, {useState} from "react";
+import {DndContext, DragEndEvent, DragOverlay, useDraggable, useDroppable} from "@dnd-kit/core";
+import {CSS} from "@dnd-kit/utilities";
 
-const correctAnswer = "СЛАДУРО ТОВА Е ЕДИН СПЕЦИАЛЕН ПЪЗЕЛ".split(" ").map((word) => word.split(""));
-const shuffledLetters = correctAnswer.flat().sort(() => Math.random() - 0.5);
+// PlacedLetter is a type for the state of a single slot which can contain either a letter or null (empty).
+type PlacedLetter = string | null;
 
-const DraggableLetter = ({
-                             letter,
-                             id,
-                         }: {
-    letter: string;
-    id: string;
-}) => {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id,
-    });
+// PlacedLetters is a type for the collection of all placed letters in a 2D array, representing the puzzle grid.
+type PlacedLetters = PlacedLetter[][];
 
-    const style = {
-        transform: CSS.Translate.toString(transform),
-        boxShadow: isDragging ? "0 5px 8px rgba(0, 0, 0, 0.2)" : undefined,
-        cursor: "grab",
-    };
+// SourceType is a type for different source types of a dragged item.
+type SourceType =
+    | { type: "available"; index: number }
+    | { type: "placed"; wordIndex: number; letterIndex: number };
+
+// Prefix constants for generating unique IDs for draggable items and droppable slots.
+const LETTER_PREFIX = "letter-";
+const SLOT_PREFIX = "slot-";
+
+// DraggableLetter is a component representing a draggable letter in the pool or grid.
+const DraggableLetter = ({letter, id}: { letter: string; id: string }) => {
+    // Initialize the draggable behavior using the DnD Kit.
+    const {attributes, listeners, setNodeRef, transform, isDragging} = useDraggable({id});
 
     return (
         <div
-            ref={setNodeRef}
-            {...listeners}
-            {...attributes}
-            style={style}
+            ref={setNodeRef} // Link the draggable element to the DnD context
+            {...listeners} // Enable interactions like click and drag
+            {...attributes} // Apply additional props needed for accessibility
+            style={{
+                transform: CSS.Translate.toString(transform),
+                boxShadow: isDragging ? "0 5px 8px rgba(0, 0, 0, 0.2)" : undefined,
+                cursor: "grab",
+            }}
             className="px-3 py-1 bg-blue-500 text-white text-lg font-semibold flex items-center justify-center rounded-md shadow-md"
         >
             {letter}
@@ -35,6 +39,7 @@ const DraggableLetter = ({
     );
 };
 
+// DroppableSlot is a component representing a single slot in the puzzle grid.
 const DroppableSlot = ({
                            wordIndex,
                            letterIndex,
@@ -43,92 +48,113 @@ const DroppableSlot = ({
                        }: {
     wordIndex: number;
     letterIndex: number;
-    letter: string | null;
-    isCorrect: boolean;
+    letter: PlacedLetter; // The current letter in the slot or null
+    isCorrect: boolean; // Whether the letter is correctly placed
 }) => {
-    const { setNodeRef } = useDroppable({
-        id: `slot-${wordIndex}-${letterIndex}`,
-    });
+    // Initialize the droppable behavior using the DnD Kit.
+    const {setNodeRef} = useDroppable({id: `${SLOT_PREFIX}${wordIndex}-${letterIndex}`});
 
     return (
         <div
-            ref={setNodeRef}
+            ref={setNodeRef} // Link the droppable element to the DnD context
             className={`m-0.5 w-10 h-10 border-2 text-lg text-center font-semibold flex items-center justify-center ${
                 isCorrect ? "bg-green-500 text-white border-green-700" : "bg-gray-100 border-gray-400"
-            }`}
+            }`} // Styling changes dynamically based on whether the letter is correct
         >
-            {letter ? <DraggableLetter letter={letter} id={`slotLetter-${wordIndex}-${letterIndex}`} /> : "_"}
+            {/* Display the letter if present or an underscore to indicate an empty slot*/}
+            {letter ? <DraggableLetter letter={letter} id={`slotLetter-${wordIndex}-${letterIndex}`}/> : "_"}
         </div>
     );
 };
 
-const Puzzle1: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
-    const [placedLetters, setPlacedLetters] = useState<(string | null)[][]>(
+// Puzzle1 is the main component managing the entire puzzle.
+const Puzzle1: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
+    // Define the correct answer to the puzzle as a 2D array of words and letters.
+    const correctAnswer = "СЛАДУРО ТИ СИ МОЕТО СЪКРОВИЩЕ".split(" ").map((word) => word.split(""));
+
+    // Shuffle the letters from the correct answer to create the pool of available letters.
+    const shuffledLetters = correctAnswer.flat().sort(() => Math.random() - 0.5);
+
+    // Helper function to create a deep clone of a 2D array (used to prevent direct mutation of state).
+    const clone2DArray = (array: PlacedLetters) => array.map((row) => row.slice());
+
+    // Helper function to check if the user's solution matches the correct answer.
+    const isPuzzleSolved = (placedLetters: PlacedLetters, correctAnswer: PlacedLetters) => {
+        return JSON.stringify(placedLetters) === JSON.stringify(correctAnswer);
+    };
+
+    // State to track the current placement of letters in the grid.
+    const [placedLetters, setPlacedLetters] = useState<PlacedLetters>(
         correctAnswer.map((word) => word.map(() => null)) // Initially all null
     );
 
+    // State to manage the pool of shuffled available letters.
     const [availableLetters, setAvailableLetters] = useState(shuffledLetters);
+
+    // State to track the letter currently being dragged.
     const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
-    const checkSolution = (currentPlacedLetters: (string | null)[][]) => {
-        // Compare currentPlacedLetters with correctAnswer
-        const isSolved = JSON.stringify(currentPlacedLetters) === JSON.stringify(correctAnswer);
-        if (isSolved) {
-            onSolve();
-        }
-    };
-
+    // handleDrop handles the placement of a letter into the grid or back to the pool.
     const handleDrop = (
         letter: string,
         targetWordIndex: number | null,
         targetLetterIndex: number | null,
-        source: { type: "available"; index: number } | { type: "placed"; wordIndex: number; letterIndex: number }
+        source: SourceType
     ) => {
-        const updatedPlacedLetters = placedLetters.map((word) => [...word]);
+        // Clone the current grid of placed letters to avoid state mutation.
+        const updatedPlacedLetters = clone2DArray(placedLetters);
         let replacedLetter: string | null = null;
 
+        // Remove the letter from its source location.
         if (source.type === "available") {
-            // Remove the letter from the available pool
+            // Remove from pool.
             setAvailableLetters((prev) => prev.filter((_, i) => i !== source.index));
         } else if (source.type === "placed") {
-            // Remove the letter from its original slot
+            // Remove from slot.
             updatedPlacedLetters[source.wordIndex][source.letterIndex] = null;
         }
 
+        // Place the letter in the new target slot or return it to the pool if no valid target.
         if (targetWordIndex !== null && targetLetterIndex !== null) {
-            // Check if the target slot already has a letter
+            // Capture replaced letter.
             replacedLetter = updatedPlacedLetters[targetWordIndex][targetLetterIndex];
-
-            // Place the new letter in the target slot
+            // Place letter in the slot.
             updatedPlacedLetters[targetWordIndex][targetLetterIndex] = letter;
         } else {
-            // Return the letter to the available pool
+            // Add letter back to the available pool.
             setAvailableLetters((prev) => [...prev, letter]);
         }
 
-        // If a letter was replaced, return it to the available pool
+        // Return any replaced letter to the pool,
         if (replacedLetter) {
             setAvailableLetters((prev) => [...prev, replacedLetter]);
         }
 
+        // Update the state with the new grid of placed letters.
         setPlacedLetters(updatedPlacedLetters);
 
-        // Check if the puzzle is solved
-        checkSolution(updatedPlacedLetters);
+        // Check if the new placements solve the puzzle.
+        if (isPuzzleSolved(updatedPlacedLetters, correctAnswer)) {
+            // Trigger the provided onSolve callback.
+            onSolve();
+        }
     };
 
+    // handleDragEnd handles the end of a drag event (either drop or cancel).
     const handleDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event;
+        const {active, over} = event;
 
         if (active && over) {
+            // ID of the dragged item.
             const activeId = active.id.toString();
+            // ID of the drop location.
             const overId = over.id.toString();
 
-            if (activeId.startsWith("letter-")) {
-                // Dragging from available letters to a slot
-                const activeIndex = parseInt(activeId.replace("letter-", ""), 10);
+            if (activeId.startsWith(LETTER_PREFIX)) {
+                // Dragging from the available pool.
+                const activeIndex = parseInt(activeId.replace(LETTER_PREFIX, ""), 10);
                 const letter = availableLetters[activeIndex];
-                if (overId.startsWith("slot-")) {
+                if (overId.startsWith(SLOT_PREFIX)) {
                     const [, targetWordIndex, targetLetterIndex] = overId.split("-").map(Number);
                     handleDrop(letter, targetWordIndex, targetLetterIndex, {
                         type: "available",
@@ -136,10 +162,10 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
                     });
                 }
             } else if (activeId.startsWith("slotLetter-")) {
-                // Dragging from one slot to another or back to available
+                // Dragging a letter from one slot to another or back to the pool.
                 const [, sourceWordIndex, sourceLetterIndex] = activeId.split("-").map(Number);
                 const letter = placedLetters[sourceWordIndex][sourceLetterIndex];
-                if (overId.startsWith("slot-")) {
+                if (overId.startsWith(SLOT_PREFIX)) {
                     const [, targetWordIndex, targetLetterIndex] = overId.split("-").map(Number);
                     handleDrop(letter!, targetWordIndex, targetLetterIndex, {
                         type: "placed",
@@ -156,13 +182,14 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
             }
         }
 
+        // Reset the drag state.
         setActiveLetter(null);
     };
 
     const handleDragStart = (event: DragEndEvent) => {
         const activeID = event.active.id.toString();
-        if (activeID.startsWith("letter-")) {
-            const activeIndex = parseInt(activeID.replace("letter-", ""), 10);
+        if (activeID.startsWith(LETTER_PREFIX)) {
+            const activeIndex = parseInt(activeID.replace(LETTER_PREFIX, ""), 10);
             setActiveLetter(availableLetters[activeIndex]);
         } else if (activeID.startsWith("slotLetter-")) {
             const [, wordIndex, letterIndex] = activeID.split("-").map(Number);
@@ -173,10 +200,7 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
     return (
         <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6 text-center">
-                {/* Puzzle Title */}
-                <h2 className={`text-2xl font-semibold mb-4`}>
-                    Подредете буквите в правилния ред:
-                </h2>
+                <h2 className="text-2xl font-semibold mb-4">Подредете буквите в правилния ред:</h2>
 
                 {/* Puzzle Grid */}
                 <div className="flex flex-wrap gap-4 bg-white p-4 rounded-lg shadow-xl border-2 border-gray-300">
@@ -198,17 +222,18 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
                 {/* Draggable Letters */}
                 <div className="flex gap-2 mt-4 flex-wrap">
                     {availableLetters.map((letter, index) => (
-                        <DraggableLetter key={index} letter={letter} id={`letter-${index}`} />
+                        <DraggableLetter key={index} letter={letter} id={`${LETTER_PREFIX}${index}`}/>
                     ))}
                 </div>
 
-                {/* Drag Overlay */}
+                {/* Drag Overlay (renders the dragged letter) */}
                 <DragOverlay>
-                    {activeLetter ? (
-                        <div className="px-2 py-1 bg-blue-500 text-white text-lg font-semibold flex items-center justify-center rounded-md shadow-md scale-110">
+                    {activeLetter && (
+                        <div
+                            className="px-2 py-1 bg-blue-500 text-white text-lg font-semibold flex items-center justify-center rounded-md shadow-md scale-110">
                             {activeLetter}
                         </div>
-                    ) : null}
+                    )}
                 </DragOverlay>
             </div>
         </DndContext>
