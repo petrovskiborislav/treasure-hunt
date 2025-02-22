@@ -29,10 +29,12 @@ const DraggableLetter = ({letter, id}: { letter: string; id: string }) => {
             {...attributes} // Apply additional props needed for accessibility
             style={{
                 transform: CSS.Translate.toString(transform),
-                boxShadow: isDragging ? "0 5px 8px rgba(0, 0, 0, 0.2)" : undefined,
+                boxShadow: isDragging ? "0 8px 12px rgba(0, 0, 0, 0.3)" : undefined,
                 cursor: "grab",
             }}
-            className="px-3 py-1 bg-blue-500 text-white text-lg font-semibold flex items-center justify-center rounded-md shadow-md"
+            className={`w-12 h-12 flex items-center justify-center 
+                        text-xl font-bold rounded-full bg-pink-500 text-white 
+                        shadow-md hover:scale-110 hover:shadow-lg`}
         >
             {letter}
         </div>
@@ -56,10 +58,14 @@ const DroppableSlot = ({
 
     return (
         <div
-            ref={setNodeRef} // Link the droppable element to the DnD context
-            className={`m-0.5 w-10 h-10 border-2 text-lg text-center font-semibold flex items-center justify-center ${
-                isCorrect ? "bg-green-500 text-white border-green-700" : "bg-gray-100 border-gray-400"
-            }`} // Styling changes dynamically based on whether the letter is correct
+            ref={setNodeRef}
+            className={`w-14 h-14 flex items-center justify-center border-2 rounded-lg 
+                        text-xl font-semibold shadow-inner
+                        ${
+                isCorrect
+                    ? "bg-green-400 text-white border-green-700 animate-pulse"
+                    : "bg-pink-200 border-pink-500"
+            }`}
         >
             {/* Display the letter if present or an underscore to indicate an empty slot*/}
             {letter ? <DraggableLetter letter={letter} id={`slotLetter-${wordIndex}-${letterIndex}`}/> : "_"}
@@ -199,16 +205,19 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
 
     return (
         <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6 text-center">
-                <h2 className="text-2xl font-semibold mb-4">Подредете буквите в правилния ред:</h2>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-pink-400 via-red-300 to-yellow-300 p-6">
+                {/* Title */}
+                <h2 className="text-3xl md:text-5xl text-center font-bold text-white mb-6">
+                    Честита годишнина, моя любов!
+                </h2>
 
                 {/* Puzzle Grid */}
-                <div className="flex flex-wrap gap-4 bg-white p-4 rounded-lg shadow-xl border-2 border-gray-300">
+                <div className="flex flex-wrap gap-4 bg-white p-4 rounded-2xl justify-center shadow-lg border-4 border-pink-600 max-w-4xl">
                     {correctAnswer.map((word, wordIndex) => (
-                        <div key={wordIndex} className="flex p-4">
+                        <div key={wordIndex} className="flex gap-2 p-4">
                             {word.map((correctLetter, letterIndex) => (
                                 <DroppableSlot
-                                    key={letterIndex}
+                                    key={`${wordIndex}-${letterIndex}`}
                                     wordIndex={wordIndex}
                                     letterIndex={letterIndex}
                                     letter={placedLetters[wordIndex][letterIndex]}
@@ -220,7 +229,7 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
                 </div>
 
                 {/* Draggable Letters */}
-                <div className="flex gap-2 mt-4 flex-wrap">
+                <div className="flex flex-wrap gap-4 mt-8 justify-center">
                     {availableLetters.map((letter, index) => (
                         <DraggableLetter key={index} letter={letter} id={`${LETTER_PREFIX}${index}`}/>
                     ))}
@@ -229,12 +238,12 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
                 {/* Drag Overlay (renders the dragged letter) */}
                 <DragOverlay>
                     {activeLetter && (
-                        <div
-                            className="px-2 py-1 bg-blue-500 text-white text-lg font-semibold flex items-center justify-center rounded-md shadow-md scale-110">
+                        <div className="px-4 py-4 border-pink-500 text-white font-semibold flex items-center justify-center rounded-md animate-pulse">
                             {activeLetter}
                         </div>
                     )}
                 </DragOverlay>
+
             </div>
         </DndContext>
     );
