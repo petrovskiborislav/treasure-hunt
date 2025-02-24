@@ -74,7 +74,7 @@ const DroppableSlot = ({
 };
 
 // Puzzle1 is the main component managing the entire puzzle.
-const Puzzle1: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
+const WordsArrangePuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
     // Define the correct answer to the puzzle as a 2D array of words and letters.
     const correctAnswer = "СЛАДУРО ТИ СИ МОЕТО СЪКРОВИЩЕ".split(" ").map((word) => word.split(""));
 
@@ -205,14 +205,16 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
 
     return (
         <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-pink-400 via-red-300 to-yellow-300 p-6">
+            <div
+                className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-pink-400 via-red-300 to-yellow-300 p-6">
                 {/* Title */}
                 <h2 className="text-3xl md:text-5xl text-center font-bold text-white mb-6">
-                    Честита годишнина, моя любов!
+                    Честита годишнина, любов моя!
                 </h2>
 
                 {/* Puzzle Grid */}
-                <div className="flex flex-wrap gap-4 bg-white p-4 rounded-2xl justify-center shadow-lg border-4 border-pink-600 max-w-4xl">
+                <div
+                    className="flex flex-wrap gap-4 bg-white p-4 rounded-2xl justify-center shadow-lg border-4 border-pink-600 max-w-4xl">
                     {correctAnswer.map((word, wordIndex) => (
                         <div key={wordIndex} className="flex gap-2 p-4">
                             {word.map((correctLetter, letterIndex) => (
@@ -238,7 +240,8 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
                 {/* Drag Overlay (renders the dragged letter) */}
                 <DragOverlay>
                     {activeLetter && (
-                        <div className="px-4 py-4 border-pink-500 text-white font-semibold flex items-center justify-center rounded-md animate-pulse">
+                        <div
+                            className="px-4 py-4 border-pink-500 text-white font-semibold flex items-center justify-center rounded-md animate-pulse">
                             {activeLetter}
                         </div>
                     )}
@@ -249,4 +252,4 @@ const Puzzle1: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
     );
 };
 
-export default Puzzle1;
+export default WordsArrangePuzzle;
