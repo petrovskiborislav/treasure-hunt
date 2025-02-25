@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import {DndContext, DragEndEvent, DragOverlay, useDraggable, useDroppable} from "@dnd-kit/core";
 import {CSS} from "@dnd-kit/utilities";
+import Confetti from "react-confetti";
 
 // PlacedLetter is a type for the state of a single slot which can contain either a letter or null (empty).
 type PlacedLetter = string | null;
@@ -100,6 +101,8 @@ const WordsArrangePuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
     // State to track the letter currently being dragged.
     const [activeLetter, setActiveLetter] = useState<string | null>(null);
 
+    const [showConfetti, setShowConfetti] = useState(false);
+
     // handleDrop handles the placement of a letter into the grid or back to the pool.
     const handleDrop = (
         letter: string,
@@ -142,7 +145,8 @@ const WordsArrangePuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
         // Check if the new placements solve the puzzle.
         if (isPuzzleSolved(updatedPlacedLetters, correctAnswer)) {
             // Trigger the provided onSolve callback.
-            onSolve();
+            setShowConfetti(true);
+            setTimeout(() => {onSolve();}, 6000);
         }
     };
 
@@ -207,9 +211,12 @@ const WordsArrangePuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
         <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
             <div
                 className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-pink-400 via-red-300 to-yellow-300 p-6">
+
+                {showConfetti && <Confetti recycle={false} numberOfPieces={500} />}
+
                 {/* Title */}
                 <h2 className="text-3xl md:text-5xl text-center font-bold text-white mb-6">
-                    Честита годишнина, любов моя!
+                    Честита годишнина, любов моя 👩🏻‍❤️‍💋‍👨🏻!
                 </h2>
 
                 {/* Puzzle Grid */}

@@ -1,11 +1,23 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import WordsArrangePuzzle from "../puzzles/WordsArrangePuzzle.tsx";
 import FirstPicturePuzzle from "../puzzles/FirstPicturePuzzle.tsx";
 import PandaVisionPuzzle from "../puzzles/PandaVisionPuzzle.tsx";
-import BilliardsInteractivePuzzle    from "../puzzles/BilliardsChallengePuzzle.tsx";
+import BilliardsInteractivePuzzle from "../puzzles/BilliardsChallengePuzzle.tsx";
 import NumberPuzzle from "../puzzles/NumberPuzzle.tsx";
+import SwimmingPoolPuzzle from "../puzzles/SwimmingPoolPuzzle.tsx";
+import CrosswordPuzzle from "../puzzles/FeatureCodePuzzle.tsx";
+import JigsawPuzzle from "../puzzles/JigsawPuzzle.tsx";
 
-const puzzleComponents = [  NumberPuzzle, BilliardsInteractivePuzzle, PandaVisionPuzzle,FirstPicturePuzzle,WordsArrangePuzzle,];
+const puzzleComponents = [
+    JigsawPuzzle,
+    CrosswordPuzzle,
+    FirstPicturePuzzle,
+    WordsArrangePuzzle,
+    PandaVisionPuzzle,
+    SwimmingPoolPuzzle,
+    NumberPuzzle,
+    BilliardsInteractivePuzzle,
+];
 
 const PuzzlePage: React.FC = () => {
     const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
@@ -21,7 +33,7 @@ const PuzzlePage: React.FC = () => {
 
     return (
         <div>
-            <CurrentPuzzle onSolve={handleSolve} />
+            <CurrentPuzzle onSolve={handleSolve}/>
         </div>
     );
 };

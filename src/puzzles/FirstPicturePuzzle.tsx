@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { MapContainer, TileLayer, Circle } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import Confetti from "react-confetti";
 
 const FirstPicturePuzzle: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
     // Correct answer for the puzzle (place name).
@@ -18,6 +19,8 @@ const FirstPicturePuzzle: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
     // Track if map is shown.
     const [showMapHint, setShowMapHint] = useState<boolean>(false);
 
+    const [showConfetti, setShowConfetti] = useState(false);
+
     // Latitude and Longitude of Казанлък.
     const location = { lat: 42.61927418203289, lng: 25.39446447361693 };
     // Radius in meters 10km.
@@ -31,12 +34,13 @@ const FirstPicturePuzzle: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
         if (userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase()) {
             // If the answer is correct, proceed to the next puzzle
             setFeedback("Правилно! 🥰 Успя!");
+            setShowConfetti(true);
             setTimeout(() => {
                 setFeedback(""); // Clear feedback after a short delay
                 setShowHint(false); // Hide the hint for the next puzzle
                 setShowMapHint(false);
                 onSolve(); // Move to the next puzzle
-            }, 1500);
+            }, 6000);
         } else {
             // If the answer is incorrect, show an error message.
             setFeedback("Опа, не съвсем правилно. Опитай отново! 💕");
@@ -52,6 +56,8 @@ const FirstPicturePuzzle: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-pink-400 via-red-300 to-yellow-300 p-6">
+            {showConfetti && <Confetti recycle={false} numberOfPieces={500} />}
+
             {/* Title */}
             <h2 className="text-3xl md:text-5xl font-bold text-white text-center mb-6">
                 Къде направихме първата си снимка заедно? 💖
@@ -60,7 +66,7 @@ const FirstPicturePuzzle: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
             {/* Image */}
             <div className="mb-6">
                 <img
-                    src="/assets/puzzle2-hint.jpg"
+                    src="/assets/place-we-took-our-first-image.jpg"
                     alt="Place Puzzle"
                     className="w-full max-w-md rounded-lg shadow-lg border-4 border-pink-600"
                 />

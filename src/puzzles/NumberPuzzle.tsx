@@ -187,7 +187,7 @@ const NumberPuzzle: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
                         initFinalStep();
                     }
                 } else {
-                    setFeedback("Поздравления панда! Ти реши този пъзел!");
+                    setFeedback("Поздравления панда 💕! Ти реши този пъзел!");
                     setShowConfetti(true);
                     setTimeout(() => {
                         onSolve();
@@ -195,7 +195,7 @@ const NumberPuzzle: React.FC<{ onSolve: () => void }> = ({ onSolve }) => {
                 }
             }, 1000);
         } else {
-            setFeedback("Упс, не е правилно. Опитай отново!");
+            setFeedback("Упс, не е правилно. Опитай отново 💕!");
             if (!hintsShown.hint1) {
                 setHintsShown({ ...hintsShown, hint1: true });
             } else if (!hintsShown.hint2 && steps[currentStep].hints.length > 1) {

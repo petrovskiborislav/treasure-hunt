@@ -1,5 +1,6 @@
 import React, {useState} from "react";
-import localImage from "../../public/assets/puzzle3-img.jpg"; // adjust path as needed
+import localImage from "../../public/assets/panda.jpg";
+import Confetti from "react-confetti";
 
 // Hotspot defines a clickable area on the image that reveals the underlying image.
 interface Hotspot {
@@ -30,6 +31,7 @@ const PandaVisionPuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
 
     const [clearedSpots, setClearedSpots] = useState<number[]>([]);
     const [feedback, setFeedback] = useState<string>("");
+    const [showConfetti, setShowConfetti] = useState(false);
 
     const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -52,10 +54,11 @@ const PandaVisionPuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
 
         // When last hotspot is cleared, remove the blur overlay after a short delay.
         if (clearedSpots.length + (spotFound ? 1 : 0) === hotspots.length) {
+            setShowConfetti(true);
             setTimeout(() => {
-                setFeedback("Напълно разкри изображението! 🎉\n");
+                setFeedback("Напълно разкри изображението! 🎉");
                 onSolve();
-            }, 2000);
+            }, 6000);
         }
     };
 
@@ -80,6 +83,9 @@ const PandaVisionPuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
     return (
         <div
             className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-purple-400 via-pink-300 to-yellow-300 p-6">
+
+            {showConfetti && <Confetti recycle={false} numberOfPieces={500} />}
+
             {/* SVG Mask Definition */}
             {/* Only needed if not fully unblurred */}
             {!isFullyUnblurred && (

@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
+import Confetti from "react-confetti";
 
 /**
  * Represents a pool or billiard ball with properties for position, velocity, radius, color, and state.
@@ -187,6 +188,7 @@ const BilliardsInteractivePuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}
     const [pocketedSum, setPocketedSum] = useState<number>(0);
     const [targetSum, setTargetSum] = useState<number>(generateRandomTarget());
     const [balls, setBalls] = useState<Ball[]>([]);
+    const [showConfetti, setShowConfetti] = useState(false);
 
     /**
      * Resets the game state to its initial configuration.
@@ -514,7 +516,7 @@ const BilliardsInteractivePuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}
                                 ball.y = ball.initialY;
                                 ball.vx = 0;
                                 ball.vy = 0;
-                                setFeedback("Нарушение! Топката бияч е вкарана в джоб. Опитайте отново.");
+                                setFeedback("Нарушение! Топката бияч е вкарана в джоб. Опитайте отново 💕." );
                             } else if (ball.active) {
                                 ball.active = false;
                                 const newSum = pocketedSum + ball.number;
@@ -526,7 +528,8 @@ const BilliardsInteractivePuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}
                                     resetGame();
                                 } else if (newCount >= 7 && newSum === targetSum) {
                                     setFeedback(`Пъзелът е решен! Постигна ${newSum} с ${newCount} топки.`);
-                                    setTimeout(() => onSolve(), 2000);
+                                    setShowConfetti(true);
+                                    setTimeout(() => onSolve(), 7000);
                                 }
                             }
                         }
@@ -696,6 +699,9 @@ const BilliardsInteractivePuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}
                 background: "linear-gradient(to right, #F472B6, #F87171, #FBBF24)"
             }}
         >
+
+            {showConfetti && <Confetti recycle={false} numberOfPieces={500}/>}
+
             <h2 className="text-4xl font-bold mb-4" style={{color: "#333"}}>
                 Нашето първо предизвикателство и среща 😘: Билярд! 🎱
              </h2>
