@@ -3,8 +3,9 @@ import WordsArrangePuzzle from "../puzzles/WordsArrangePuzzle.tsx";
 import FirstPicturePuzzle from "../puzzles/FirstPicturePuzzle.tsx";
 import PandaVisionPuzzle from "../puzzles/PandaVisionPuzzle.tsx";
 import BilliardsInteractivePuzzle    from "../puzzles/BilliardsChallengePuzzle.tsx";
+import NumberPuzzle from "../puzzles/NumberPuzzle.tsx";
 
-const puzzleComponents = [  BilliardsInteractivePuzzle, PandaVisionPuzzle,FirstPicturePuzzle,WordsArrangePuzzle,];
+const puzzleComponents = [  NumberPuzzle, BilliardsInteractivePuzzle, PandaVisionPuzzle,FirstPicturePuzzle,WordsArrangePuzzle,];
 
 const PuzzlePage: React.FC = () => {
     const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(0);
