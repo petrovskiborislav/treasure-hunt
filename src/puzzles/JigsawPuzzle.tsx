@@ -1,3 +1,4 @@
+// @ts-ignore
 import * as headbreaker from "headbreaker";
 import React, {useEffect, useRef, useState} from "react";
 import Confetti from "react-confetti";
@@ -35,6 +36,7 @@ function DemoJigsaw({id, pieceSize, image, onSolved}: JigsawProps) {
     const imgObj = new Image();
     imgObj.src = image;
     imgObj.onload = () => {
+        // @ts-ignore
         const canvasInstance = new headbreaker.Canvas(puzzleRef.current.id, {
             width: canvasDimensions.width,
             height: canvasDimensions.height,
