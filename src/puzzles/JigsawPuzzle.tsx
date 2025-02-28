@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-expect-error since headbreaker is not typed
 import * as headbreaker from "headbreaker";
 import React, {useEffect, useRef, useState} from "react";
 import Confetti from "react-confetti";
@@ -12,6 +12,7 @@ type JigsawProps = {
 
 function DemoJigsaw({id, pieceSize, image, onSolved}: JigsawProps) {
     const puzzleRef = useRef<HTMLDivElement>(null);
+    const [canvasKey, setCanvasKey] = useState(0); // Key to force reinitialization
 
     const [canvasDimensions, setCanvasDimensions] = useState({
         width: 0,
@@ -31,46 +32,53 @@ function DemoJigsaw({id, pieceSize, image, onSolved}: JigsawProps) {
             const canvasHeight = computedPieceSize * verticalPiecesCount * 1.5;
             setCanvasDimensions({width: canvasWidth, height: canvasHeight, computedPieceSize});
         }
-    }, [horizontalPiecesCount, verticalPiecesCount, id]);
+    }, [horizontalPiecesCount, verticalPiecesCount, id, canvasKey]);
 
     const imgObj = new Image();
     imgObj.src = image;
     imgObj.onload = () => {
-        // @ts-ignore
-        const canvasInstance = new headbreaker.Canvas(puzzleRef.current.id, {
-            width: canvasDimensions.width,
-            height: canvasDimensions.height,
-            image: imgObj,
-            pieceSize: canvasDimensions.computedPieceSize,
-            outline: new headbreaker.outline.Rounded(),
-            preventOffstageDrag: true,
-            fixed: true,
-            painter: new headbreaker.painters.Konva(),
-            borderFill: canvasDimensions.computedPieceSize / 20,
-            strokeWidth: 2,
-            lineSoftness: 0.3,
-        });
+        if (puzzleRef.current && puzzleRef.current.id) {
+            const canvasInstance = new headbreaker.Canvas(puzzleRef.current.id, {
+                width: canvasDimensions.width,
+                height: canvasDimensions.height,
+                image: imgObj,
+                pieceSize: canvasDimensions.computedPieceSize,
+                outline: new headbreaker.outline.Rounded(),
+                preventOffstageDrag: true,
+                fixed: true,
+                painter: new headbreaker.painters.Konva(),
+                borderFill: canvasDimensions.computedPieceSize / 20,
+                strokeWidth: 2,
+                lineSoftness: 0.3,
+            });
 
-        canvasInstance.adjustImagesToPuzzleHeight();
-        canvasInstance.autogenerate({
-            horizontalPiecesCount,
-            verticalPiecesCount,
-            insertsGenerator: headbreaker.generators.flipflop,
-        });
-        canvasInstance.shuffle(0.7);
-        canvasInstance.draw();
-        canvasInstance.attachSolvedValidator();
-        canvasInstance.onValid(() => {
-            const overlay = document.getElementById("validated-canvas-overlay");
-            if (overlay) {
-                overlay.style.opacity = "1";
-            }
-            onSolved();
-        });
+            canvasInstance.adjustImagesToPuzzleHeight();
+            canvasInstance.autogenerate({
+                horizontalPiecesCount,
+                verticalPiecesCount,
+                insertsGenerator: headbreaker.generators.flipflop,
+            });
+            canvasInstance.shuffle(0.7);
+            canvasInstance.draw();
+            canvasInstance.attachSolvedValidator();
+            canvasInstance.onValid(() => {
+                const overlay = document.getElementById("validated-canvas-overlay");
+                if (overlay) {
+                    overlay.style.opacity = "1";
+                }
+                onSolved();
+            });
+        }
+    }
+
+    // Function to reinitialize the puzzle
+    const handleReinitialize = () => {
+        setCanvasKey(canvasKey + 1); // Update key to trigger reinitialization
     };
 
+
     return (
-        <div className="relative">
+        <div className="relative flex flex-col items-center justify-center">
             <div
                 ref={puzzleRef}
                 id={id}
@@ -83,6 +91,12 @@ function DemoJigsaw({id, pieceSize, image, onSolved}: JigsawProps) {
                 src={image}
                 className="top-0 left-0 absolute w-full h-full transition-opacity duration-500 opacity-0 pointer-events-none"
             />
+            <button
+                onClick={handleReinitialize}
+                className="mt-4 w-1/2 bg-purple-400 hover:bg-purple-500 text-white px-4 py-2 rounded shadow transition duration-300 ease-in-out transform hover:scale-105"
+            >
+                Размести отново
+            </button>
         </div>
     );
 }
@@ -222,7 +236,6 @@ function PuzzleCycle({onSolve, setShowConfetti}: { onSolve: () => void, setShowC
 
 const JigsawPuzzle: React.FC<{ onSolve: () => void }> = ({onSolve}) => {
     const [showConfetti, setShowConfetti] = useState(false);
-
 
     return (
         <div
